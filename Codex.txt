@@ -1,0 +1,362 @@
+Demographic Insights
+
+Who prefers energy drink more? (male/female/non-binary?)
+
+SELECT COUNT(*) as Count , r.gender FROM fact_survey_responses as f 
+inner join dim_repondents as r on r.Respondent_ID = f.Respondent_ID
+group by r.Gender;
+
+| count | gender     |
+|-------|------------|
+| 3455  | Female     |
+| 6038  | Male       |
+| 507   | Non-binary |
+
+
+Which age group prefers energy drink more ?
+
+SELECT COUNT(*) as Count , r.Age FROM fact_survey_responses as f 
+inner join dim_repondents as r on r.Respondent_ID = f.Respondent_ID
+group by r.age;
+
+| count | age   |
+|-------|-------|
+| 1488  | 15-18 |
+| 5520  | 19-30 |
+| 2376  | 31-45 |
+| 426   | 46-65 |
+| 190   | 65+   |
+
+
+Which type of marketing reaches the most youth (15-30) ?
+
+select Marketing_channels,count(Marketing_channels) as count from dim_repondents r 
+join fact_survey_responses s 
+using(Respondent_ID)
+where age in ("15-18","19-30")
+group by Marketing_channels
+
+| Marketing_channels   | count |
+|----------------------|-------|
+| TV commercials       | 1785  |
+| Print media          | 446   |
+| Online ads           | 3373  |
+| Other                | 702   |
+| Outdoor billboards   | 702   |
+
+
+Consumer Preferences:
+
+What are the preferred ingredients of energy drinks among respondents?
+
+select Ingredients_expected , count(*) as count from fact_survey_responses
+group by Ingredients_expected
+
+| Ingredients_expected | count |
+|----------------------|-------|
+| Guarana              | 1553  |
+| Caffeine             | 3896  |
+| Vitamins             | 2534  |
+| Sugar                | 2017  |
+
+
+What packaging preferences do respondents have for energy drinks?
+
+select Packaging_preference , count(*) as count from fact_survey_responses
+group by Packaging_preference
+
+| Packaging_preference       | count |
+|----------------------------|-------|
+| Compact and portable cans  | 3984  |
+| Innovative bottle design   | 3047  |
+| Other                      | 485   |
+| Eco-friendly design        | 983   |
+| Collectible packaging      | 1501  |
+
+
+Competition Analysis:
+
+Who are the current market leaders?
+
+select Current_brands , count(*) as count from fact_survey_responses
+group by Current_brands
+order by count desc
+
+| Current_brands | count |
+|----------------|-------|
+| Blue Bull      | 1058  |
+| Bepsi          | 2112  |
+| Sky 9          | 979   |
+| Cola-Coka      | 2538  |
+| Gangster       | 1854  |
+| CodeX          | 980   |
+| Others         | 479   |
+
+
+What are the primary reasons consumers prefer those brands over ours ?
+
+select Current_brands, Reasons_for_choosing_brands , count(*) as count from fact_survey_responses
+group by Current_brands, Reasons_for_choosing_brands
+order by count desc
+
+| Current_brands | Reasons_for_choosing_brands | count |
+|----------------|-----------------------------|-------|
+| Cola-Coka      | Brand reputation            | 616   |
+| Bepsi          | Brand reputation            | 577   |
+| Cola-Coka      | Taste/flavor preference    | 531   |
+| Gangster       | Brand reputation            | 511   |
+| Cola-Coka      | Availability               | 510   |
+| Cola-Coka      | Other                       | 448   |
+| Cola-Coka      | Effectiveness               | 433   |
+| Bepsi          | Taste/flavor preference    | 423   |
+| Bepsi          | Availability               | 418   |
+| Gangster       | Taste/flavor preference    | 357   |
+| Bepsi          | Other                       | 355   |
+| Bepsi          | Effectiveness               | 339   |
+| Gangster       | Availability               | 339   |
+| Gangster       | Effectiveness               | 338   |
+| Gangster       | Other                       | 309   |
+| Blue Bull      | Brand reputation            | 289   |
+| Sky 9          | Brand reputation            | 260   |
+| CodeX          | Brand reputation            | 259   |
+| Blue Bull      | Taste/flavor preference    | 237   |
+| CodeX          | Availability               | 195   |
+| Sky 9          | Taste/flavor preference    | 194   |
+| Sky 9          | Effectiveness               | 188   |
+| Blue Bull      | Effectiveness               | 187   |
+| Sky 9          | Availability               | 182   |
+| CodeX          | Taste/flavor preference    | 182   |
+| Blue Bull      | Availability               | 180   |
+| CodeX          | Effectiveness               | 176   |
+| CodeX          | Other                       | 168   |
+| Blue Bull      | Other                       | 165   |
+| Sky 9          | Other                       | 155   |
+| Others         | Brand reputation            | 140   |
+| Others         | Taste/flavor preference    | 87    |
+| Others         | Effectiveness               | 87    |
+| Others         | Availability               | 86    |
+| Others         | Other                       | 79    |
+
+
+
+Marketing Channels and Brand Awareness:
+
+Which marketing channel can be used to reach more customers?
+
+select Marketing_channels,count(Marketing_channels) as count from dim_repondents r 
+join fact_survey_responses s 
+using(Respondent_ID)
+group by Marketing_channels
+
+| Marketing_channels   | count |
+|----------------------|-------|
+| TV commercials       | 2688  |
+| Print media          | 841   |
+| Online ads           | 4020  |
+| Other                | 1225  |
+| Outdoor billboards   | 1226  |
+
+
+Brand Penetration:
+
+What do people think about our brand? (overall rating)
+
+select Brand_perception , 
+count(*) as count , 
+(count(*)) / sum(count(Brand_perception)) over() *100 as pct
+from fact_survey_responses
+group by Brand_perception
+
+| Brand_perception | count | pct    |
+|------------------|-------|--------|
+| Neutral          | 5974  | 59.7400|
+| Positive         | 2257  | 22.5700|
+| Negative         | 1769  | 17.6900|
+
+
+Which cities do we need to focus more on?
+
+select 
+	city,
+    tier,
+    count(f.Respondent_ID) as count
+from fact_survey_responses f join 
+dim_repondents r
+on f.Respondent_ID = r.Respondent_ID
+join
+dim_cities c
+on c.city_id = r.City_ID 
+where f.Current_brands = 'codeX'
+group by City,tier
+
+| city       | tier   | count |
+|------------|--------|-------|
+| Bangalore  | Tier 1 | 292   |
+| Mumbai     | Tier 1 | 156   |
+| Chennai    | Tier 1 | 92    |
+| Kolkata    | Tier 2 | 48    |
+| Hyderabad  | Tier 1 | 182   |
+| Pune       | Tier 2 | 92    |
+| Ahmedabad  | Tier 2 | 45    |
+| Delhi      | Tier 1 | 40    |
+| Jaipur     | Tier 2 | 28    |
+| Lucknow    | Tier 2 | 5     |
+
+
+Purchase Behavior:
+
+Where do respondents prefer to purchase energy drinks?
+
+select 
+Purchase_location, 
+count(*) as count 
+from fact_survey_responses
+group by Purchase_location
+
+
+| Purchase_location           | count |
+|-----------------------------|-------|
+| Supermarkets                | 4494  |
+| Online retailers            | 2550  |
+| Gyms and fitness centers    | 1464  |
+| Other                       | 679   |
+| Local stores                | 813   |
+
+
+What are the typical consumption situations for energy drinks among respondents?
+
+select Typical_consumption_situations, count(*) as count from fact_survey_responses
+group by Typical_consumption_situations
+
+| Typical_consumption_situations | count |
+|--------------------------------|-------|
+| Studying/working late          | 3231  |
+| Sports/exercise               | 4494  |
+| Social outings/parties        | 1487  |
+| Other                         | 491   |
+| Driving/commuting             | 297   |
+
+
+What factors influence respondents' purchase decisions, such as price range and limited edition packaging?
+
+select Reasons_for_choosing_brands,Price_range , Limited_edition_packaging , count(*)  as count from fact_survey_responses
+where Current_brands = "CodeX"
+group by Reasons_for_choosing_brands,Price_range, Limited_edition_packaging
+
+| Reasons_for_choosing_brands | Price_range | Limited_edition_packaging | count |
+|-----------------------------|-------------|---------------------------|-------|
+| Availability                | 50-99       | Not Sure                  | 21    |
+| Availability                | 100-150     | Yes                       | 26    |
+| Availability                | 50-99       | Yes                       | 41    |
+| Availability                | Above 150   | No                        | 13    |
+| Availability                | 50-99       | No                        | 32    |
+| Availability                | 100-150     | Not Sure                  | 16    |
+| Availability                | 100-150     | No                        | 22    |
+| Availability                | Above 150   | Yes                       | 7     |
+| Availability                | Below 50    | Yes                       | 4     |
+| Availability                | Below 50    | Not Sure                  | 4     |
+| Availability                | Below 50    | No                        | 6     |
+| Availability                | Above 150   | Not Sure                  | 3     |
+| Brand reputation            | 50-99       | Yes                       | 40    |
+| Brand reputation            | 100-150     | Not Sure                  | 21    |
+| Brand reputation            | 100-150     | Yes                       | 34    |
+| Brand reputation            | 100-150     | No                        | 29    |
+| Brand reputation            | Above 150   | Not Sure                  | 8     |
+| Brand reputation            | Above 150   | Yes                       | 23    |
+| Brand reputation            | 50-99       | No                        | 44    |
+| Brand reputation            | Above 150   | No                        | 20    |
+| Brand reputation            | 50-99       | Not Sure                  | 15    |
+| Brand reputation            | Below 50    | Yes                       | 9     |
+| Brand reputation            | Below 50    | Not Sure                  | 7     |
+| Brand reputation            | Below 50    | No                        | 9     |
+| Effectiveness               | 100-150     | Yes                       | 25    |
+| Effectiveness               | Above 150   | No                        | 12    |
+| Effectiveness               | Below 50    | Yes                       | 15    |
+| Effectiveness               | 50-99       | No                        | 24    |
+| Effectiveness               | Above 150   | Yes                       | 11    |
+| Effectiveness               | Below 50    | Not Sure                  | 6     |
+| Effectiveness               | 100-150     | Not Sure                  | 14    |
+| Effectiveness               | 50-99       | Not Sure                  | 11    |
+| Effectiveness               | Below 50    | No                        | 7     |
+| Effectiveness               | 100-150     | No                        | 17    |
+| Effectiveness               | 50-99       | Yes                       | 28    |
+| Effectiveness               | Above 150   | Not Sure                  | 6     |
+| Other                       | 50-99       | Yes                       | 28    |
+| Other                       | 50-99       | Not Sure                  | 14    |
+| Other                       | Above 150   | Not Sure                  | 4     |
+| Other                       | 100-150     | Yes                       | 28    |
+| Other                       | Below 50    | No                        | 5     |
+| Other                       | 50-99       | No                        | 30    |
+| Other                       | 100-150     | No                        | 15    |
+| Other                       | Below 50    | Yes                       | 11    |
+| Other                       | 100-150     | Not Sure                  | 10    |
+| Other                       | Above 150   | Yes                       | 10    |
+| Other                       | Below 50    | Not Sure                  | 3     |
+| Other                       | Above 150   | No                        | 10    |
+| Taste/flavor preference     | 50-99       | Not Sure                  | 14    |
+| Taste/flavor preference     | 100-150     | No                        | 25    |
+| Taste/flavor preference     | Above 150   | Yes                       | 13    |
+| Taste/flavor preference     | Above 150   | No                        | 13    |
+| Taste/flavor preference     | 50-99       | No                        | 34    |
+| Taste/flavor preference     | 100-150     | Yes                       | 20    |
+| Taste/flavor preference     | Below 50    | Yes                       | 8     |
+| Taste/flavor preference     | 100-150     | Not Sure                  | 11    |
+| Taste/flavor preference     | 50-99       | Yes                       | 34    |
+| Taste/flavor preference     | Below 50    | No                        | 3     |
+| Taste/flavor preference     | Above 150   | Not Sure                  | 6     |
+| Taste/flavor preference     | Below 50    | Not Sure                  | 1     |
+
+
+Product Development
+
+Which area of business should we focus more on our product development? (Branding/taste/availability)
+
+select Reasons_for_choosing_brands , count(*) as count from fact_survey_responses
+where Current_brands = "CodeX"
+group by Reasons_for_choosing_brands
+order by count desc
+
+| Reasons_for_choosing_brands | count |
+|-----------------------------|-------|
+| Availability                | 195   |
+| Brand reputation            | 259   |
+| Effectiveness               | 176   |
+| Other                       | 168   |
+| Taste/flavor preference     | 182   |
+
+
+What immediate improvements can we bring to the product?
+
+select Improvements_desired, count(*) as count from fact_survey_responses
+where Current_brands = "CodeX"
+group by Improvements_desired;
+
+| Improvements_desired       | count |
+|---------------------------|-------|
+| Reduced sugar content      | 298   |
+| Wider range of flavors     | 208   |
+| More natural ingredients   | 234   |
+| Healthier alternatives     | 143   |
+| Other                     | 97    |
+
+
+What should be the ideal price of our product?
+
+select Price_range, count(*) as count from fact_survey_responses
+where Current_brands = "CodeX"
+group by Price_range;
+
+| Price_range | count |
+|-------------|-------|
+| Below 50    | 98    |
+| Above 150   | 159   |
+| 50-99       | 410   |
+| 100-150     | 313   |
+
+
+
+
+
+
+
+
